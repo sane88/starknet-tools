@@ -8,6 +8,7 @@ import { W } from ".";
 
 const ACCOUNT_CLASS_HASH = "0x4d07e40e93398ed3c76981e72dd1fd22557a78ce36c0515f679e27f0bb5bc5f";
 
+const STARKVERSE_CONTRACT = "0x060582df2cd4ad2c988b11fdede5c43f56a432e895df255ccd1af129160044b8";
 const PYRAMID_CONTRACT = "0x0364847c4f39b869760a8b213186b5b553127e9420e594075d13d1ce8a1d9157";
 const PYRAMID_FRONT = "0x042e7815d9e90b7ea53f4550f74dc12207ed6a0faaef57ba0dbf9a66f3762d82";
 const DMAIL_CONTRACT = "0x0454f0bd015e730e5adbb4f080b075fdbf55654ff41ee336203aa2e1ac4d4309";
@@ -270,6 +271,14 @@ export class StarknetService {
                     calldata: [`${randomNumber()}`],
                 }])
 
+        })
+    }
+
+    async starkverseMint() {
+        await this.invoke({
+            contractAddress: STARKVERSE_CONTRACT,
+            entrypoint: 'publicMint',
+            calldata: [this.account.address]
         })
     }
 

@@ -10,7 +10,7 @@ async function main(): Promise<void> {
     // await runFull(w)
 
     const service = new StarknetService(w, false)
-    await service.pyramidMintNFT()
+    await service.starkverseMint()
     // await wait()
     // await service.pyramidCancel()
     // await wait()
@@ -139,6 +139,17 @@ const single = async (w: W) => {
         //     await wait()
         //     await service.mySwapSwapStableToEth()
         // },
+        async function pyramidApproveAndCancel() {
+            await service.pyramidApprove()
+            await wait()
+            await service.pyramidCancel()
+        },
+        async function pyramidMint() {
+            await service.pyramidMintNFT()
+        },
+        async function starkverseMint() {
+            await service.starkverseMint()
+        },
         async function flex() {
             await service.flexSetApprovalNFT()
             await wait()

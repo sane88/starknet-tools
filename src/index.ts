@@ -10,9 +10,9 @@ async function main(): Promise<void> {
     // await runFull(w)
 
     const service = new StarknetService(w, false)
-    // await service.flexSetApprovalNFT()
+    await service.pyramidMintNFT()
     // await wait()
-    // await service.flexCancellOrder()
+    // await service.pyramidCancel()
     // await wait()
     // await service.increaseAllowance()
     // await wait()
@@ -22,11 +22,27 @@ async function main(): Promise<void> {
     // await service.mySwapSwapStableToEth()
     // await service.transferToOkx()
 
-    console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
+    // console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
     // await zkVolAndTransafer(w, "0.6963")
     // await service.transferToOkx("0.6963")
-    // for (let i = 0; i < wallets.warm3.length; i++) {
-    // await single(wallets.warm3[wallets.warm3.length - 1])
+    // for (let i = 0; i < wallets.warm5.length; i++) {
+    // const w = wallets.warm5[i]
+    // console.log(`Address ${w.address}`)
+    // const service = new StarknetService(w, false)
+    // await service.pyramidApprove()
+    // await wait()
+    // await service.pyramidCancel()
+    // await withRetry(async () => {
+    //     await service.getBalance().then((v) => {
+    //         console.log(`ballance for wallet ${w.address} is ${v} ETH`)
+    //     })
+    // })
+    // await wait()
+    // await service.flexSetApprovalNFT()
+    // await wait()
+    // await service.flexCancellOrder()
+    // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
+    // await single(wallets.warm5[i])
     // }
 
     // wallets.warm2.slice(2,4).forEach((wallet) => {
@@ -86,7 +102,12 @@ const runFull = async (w: W) => {
         console.log(`running ${f.name} for ${w.address}`)
         await withRetry(f)
     }
-    console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
+    await withRetry(async () => {
+        await service.getBalance().then((v) => {
+            console.log(`ballance for wallet ${w.address} is ${v} ETH`)
+        })
+    })
+
 }
 
 const withRetry = async (fun: () => Promise<void>, times: number = 3) => {
@@ -132,7 +153,11 @@ const single = async (w: W) => {
     console.log('-------------------------')
     console.log(`running ${f.name} for ${w.address}`)
     await withRetry(f)
-    console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
+    await withRetry(async () => {
+        await service.getBalance().then((v) => {
+            console.log(`ballance for wallet ${w.address} is ${v} ETH`)
+        })
+    })
 }
 
 export interface W {

@@ -1,5 +1,5 @@
 import { Account, Call, Contract, Provider, constants, json, uint256, encode, CallContractResponse, AllowArray, hash, stark, ec } from "starknet";
-import { ETH_PRICE, generateRandomString, getRandomStable, prettyPrintFee } from './util';
+import { ETH_PRICE, generateRandomString, getRandomStable, prettyPrintFee, randomNumber } from './util';
 import fs from 'fs';
 import { Wallet, ethers } from "ethers";
 import { getPubKey, getStarkPk } from "./keyDerivation";
@@ -8,6 +8,8 @@ import { W } from ".";
 
 const ACCOUNT_CLASS_HASH = "0x4d07e40e93398ed3c76981e72dd1fd22557a78ce36c0515f679e27f0bb5bc5f";
 
+const PYRAMID_CONTRACT = "0x0364847c4f39b869760a8b213186b5b553127e9420e594075d13d1ce8a1d9157";
+const PYRAMID_FRONT = "0x042e7815d9e90b7ea53f4550f74dc12207ed6a0faaef57ba0dbf9a66f3762d82";
 const DMAIL_CONTRACT = "0x0454f0bd015e730e5adbb4f080b075fdbf55654ff41ee336203aa2e1ac4d4309";
 const STARK_ID_CONTRACT = "0x05dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af";
 const ETH_ADDRESS = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
@@ -183,7 +185,7 @@ export class StarknetService {
         if (amount.length > 18) {
             amount = amount.substring(0, 18)
         }
-        
+
         if (!(await this.isCollateralEnabled())) {
             await this.invoke({
                 contractAddress: ZK_LAND_CONTRACT,
@@ -227,6 +229,47 @@ export class StarknetService {
             contractAddress: FLEX_CONTRACT,
             entrypoint: 'cancelMakerOrder',
             calldata: ["20"],
+        })
+    }
+
+    async pyramidApprove() {
+        await this.invoke({
+            contractAddress: ETH_ADDRESS,
+            entrypoint: 'approve',
+            calldata: [PYRAMID_CONTRACT, uint256.bnToUint256(ethers.parseEther("0.0001"))],
+        })
+    }
+
+    async pyramidCancel() {
+        await this.invoke({
+            contractAddress: PYRAMID_CONTRACT,
+            entrypoint: 'cancelMakerOrder',
+            calldata: ["0"],
+        })
+    }
+
+    async pyramidMintNFT() {
+
+        await this.call({
+            contractAddress: PYRAMID_FRONT,
+            entrypoint: 'returnMintCost',
+            calldata: [],
+        }).then((res) => {
+            const cost = BigInt(res.result[0]).toString()
+            console.log(`mint cost is ${ethers.formatEther(cost)} ETH (~ ${parseFloat(ethers.formatEther(cost)) * ETH_PRICE})`)
+
+            this.invoke([
+                {
+                    contractAddress: ETH_ADDRESS,
+                    entrypoint: 'approve',
+                    calldata: [PYRAMID_FRONT, uint256.bnToUint256(cost)],
+                },
+                {
+                    contractAddress: PYRAMID_FRONT,
+                    entrypoint: 'mint',
+                    calldata: [`${randomNumber()}`],
+                }])
+
         })
     }
 

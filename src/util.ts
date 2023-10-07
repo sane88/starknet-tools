@@ -57,3 +57,7 @@ export const shuffleArray = <T>(array: T[]): T[] => {
 
     return shuffledArray;
 }
+
+export const randomNumber = (min: number = 11111111111111111111, max: number = 999999999999999999999): number => {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

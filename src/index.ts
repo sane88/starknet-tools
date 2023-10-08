@@ -1,17 +1,16 @@
 import { HttpError } from "starknet";
 import { StarknetService } from "./StarknetSevice";
 import * as wallets from "./wallets/wallets.json";
-import { shuffleArray, wait } from "./util";
+import { getEthPrice, shuffleArray, wait } from "./util";
 
 async function main(): Promise<void> {
 
-    const w = wallets.warm3[5]
+    // const w = wallets.warm2[2]
 
     // await runFull(w)
 
-    const service = new StarknetService(w, false)
-    await service.starkverseMint()
-    // await wait()
+    // const service = new StarknetService(w, false)
+
     // await service.pyramidCancel()
     // await wait()
     // await service.increaseAllowance()
@@ -25,9 +24,9 @@ async function main(): Promise<void> {
     // console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
     // await zkVolAndTransafer(w, "0.6963")
     // await service.transferToOkx("0.6963")
-    // for (let i = 0; i < wallets.warm5.length; i++) {
-    // const w = wallets.warm5[i]
-    // console.log(`Address ${w.address}`)
+    // for (let i = 2; i < wallets.warm2.length; i++) {
+    //     const w = wallets.warm2[i]
+    //     console.log(`Address ${w.address}`)
     // const service = new StarknetService(w, false)
     // await service.pyramidApprove()
     // await wait()
@@ -42,7 +41,7 @@ async function main(): Promise<void> {
     // await wait()
     // await service.flexCancellOrder()
     // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
-    // await single(wallets.warm5[i])
+    // await single(w)
     // }
 
     // wallets.warm2.slice(2,4).forEach((wallet) => {
@@ -127,13 +126,13 @@ const withRetry = async (fun: () => Promise<void>, times: number = 3) => {
 const single = async (w: W) => {
     const service = new StarknetService(w, false)
     const f = shuffleArray([
-        async function mint() { await service.mintStarknetId() },
-        async function dmail() { await service.sendDmail() },
-        async function collateral() {
-            await service.enableCollateral()
-            await wait()
-            await service.disableCollateral()
-        },
+        // async function mint() { await service.mintStarknetId() },
+        // async function dmail() { await service.sendDmail() },
+        // async function collateral() {
+        //     await service.enableCollateral()
+        //     await wait()
+        //     await service.disableCollateral()
+        // },
         // async function swap() {
         //     await service.mySwapSwapEthToStable()
         //     await wait()
@@ -144,22 +143,22 @@ const single = async (w: W) => {
             await wait()
             await service.pyramidCancel()
         },
-        async function pyramidMint() {
-            await service.pyramidMintNFT()
-        },
+        // async function pyramidMint() {
+        //     await service.pyramidMintNFT()
+        // },
         async function starkverseMint() {
             await service.starkverseMint()
         },
-        async function flex() {
-            await service.flexSetApprovalNFT()
-            await wait()
-            await service.flexCancellOrder()
-        },
-        async function unframed() {
-            await service.increaseAllowance()
-            await wait()
-            await service.unframedCancel()
-        }
+        // async function flex() {
+        //     await service.flexSetApprovalNFT()
+        //     await wait()
+        //     await service.flexCancellOrder()
+        // },
+        // async function unframed() {
+        //     await service.increaseAllowance()
+        //     await wait()
+        //     await service.unframedCancel()
+        // }
     ])[0]
     console.log('-------------------------')
     console.log(`running ${f.name} for ${w.address}`)

@@ -1,5 +1,5 @@
 import { Account, Call, Contract, Provider, constants, json, uint256, encode, CallContractResponse, AllowArray, hash, stark, ec } from "starknet";
-import { ETH_PRICE, generateRandomString, getRandomStable, prettyPrintFee, randomNumber } from './util';
+import { generateRandomString, getEthPrice, getRandomStable, prettyPrintFee, randomNumber } from './util';
 import fs from 'fs';
 import { Wallet, ethers } from "ethers";
 import { getPubKey, getStarkPk } from "./keyDerivation";
@@ -126,11 +126,11 @@ export class StarknetService {
         }
         const amountFloat = parseFloat(amount)
 
-        let slipage = ((amountFloat * ETH_PRICE) - ((amountFloat * ETH_PRICE) * SLIPPAGE) / 100).toString()
+        let slipage = ((amountFloat * getEthPrice()) - ((amountFloat * getEthPrice()) * SLIPPAGE) / 100).toString()
         if (slipage.length > 6) {
             slipage = slipage.substring(0, 6)
         }
-        console.log(`swapping ${amount} of ETH to ${ADDRESS_TO_STABLE.get(stableToPool[0])} (~ $ ${amountFloat * ETH_PRICE}), slippage of ${SLIPPAGE}% ($ ${slipage})`)
+        console.log(`swapping ${amount} of ETH to ${ADDRESS_TO_STABLE.get(stableToPool[0])} (~ $ ${amountFloat * getEthPrice()}), slippage of ${SLIPPAGE}% ($ ${slipage})`)
 
         await this.invoke([{
             contractAddress: ETH_ADDRESS,
@@ -151,11 +151,11 @@ export class StarknetService {
         const amount = stableToBalance[1]
         const amountFloat = parseFloat(amount)
         const amountBn = ethers.parseUnits(amount, (stableToBalance[0][0] == DAI_ADDRESS ? undefined : 6))
-        let slipage = ((amountFloat / ETH_PRICE) - ((amountFloat / ETH_PRICE) * 5) / 100).toString()
+        let slipage = ((amountFloat / getEthPrice()) - ((amountFloat / getEthPrice()) * 5) / 100).toString()
         if (slipage.length > 18) {
             slipage = slipage.substring(0, 18)
         }
-        console.log(`swapping ${amount} of ${ADDRESS_TO_STABLE.get(stableToBalance[0][0])} to ETH (~ ${(amountFloat / ETH_PRICE)}), slippage of ${SLIPPAGE}% (${slipage})`)
+        console.log(`swapping ${amount} of ${ADDRESS_TO_STABLE.get(stableToBalance[0][0])} to ETH (~ ${(amountFloat / getEthPrice())}), slippage of ${SLIPPAGE}% (${slipage})`)
         await this.invoke([{
             contractAddress: stableToBalance[0][0],
             entrypoint: 'approve',
@@ -249,7 +249,7 @@ export class StarknetService {
         })
     }
 
-    async pyramidMintNFT() {
+    async pyramidMintNFT(limit: number = 0.0005) {
 
         await this.call({
             contractAddress: PYRAMID_FRONT,
@@ -257,7 +257,13 @@ export class StarknetService {
             calldata: [],
         }).then((res) => {
             const cost = BigInt(res.result[0]).toString()
-            console.log(`mint cost is ${ethers.formatEther(cost)} ETH (~ ${parseFloat(ethers.formatEther(cost)) * ETH_PRICE})`)
+            const costFloat = parseFloat(ethers.formatEther(cost))
+            console.log(`mint cost is ${ethers.formatEther(cost)} ETH (~ ${costFloat * getEthPrice()} $)`)
+
+            if (costFloat > limit) {
+                console.log("Mint cost is greater than alloved. Skipping")
+                return
+            }
 
             this.invoke([
                 {

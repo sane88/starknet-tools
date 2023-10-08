@@ -17,6 +17,7 @@
     "ethers": "^6.7.1",
     "fs": "^0.0.1-security",
     "micro-starknet": "^0.2.3",
-    "starknet": "^5.19.5"
+    "starknet": "^5.19.5",
+    "axios": "^1.4.0"
   }
 }

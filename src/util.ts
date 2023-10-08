@@ -1,11 +1,12 @@
+import axios from "axios";
 import { ethers } from "ethers";
 import { EstimateFee } from 'starknet';
 
-export const ETH_PRICE = 1650;
+let ethPrice = 0;
 
 export const prettyPrintFee = (fee: EstimateFee) => {
     const formatterOverall = ethers.formatEther(fee.overall_fee.toString())
-    console.log(`Overall Fee: ${formatterOverall} ($ ${parseFloat(formatterOverall) * ETH_PRICE})`);
+    console.log(`Overall Fee: ${formatterOverall} ($ ${parseFloat(formatterOverall) * ethPrice})`);
     if (fee.gas_consumed !== undefined) {
         console.log(`Gas Consumed: ${fee.gas_consumed.toString()}`);
     }
@@ -14,8 +15,17 @@ export const prettyPrintFee = (fee: EstimateFee) => {
     }
     if (fee.suggestedMaxFee !== undefined) {
         const suggestedMaxFeeFormatted = ethers.formatEther(fee.suggestedMaxFee.toString())
-        console.log(`Suggested Max Fee: ${suggestedMaxFeeFormatted} ($ ${parseFloat(suggestedMaxFeeFormatted) * ETH_PRICE})`);
+        console.log(`Suggested Max Fee: ${suggestedMaxFeeFormatted} ($ ${parseFloat(suggestedMaxFeeFormatted) * ethPrice})`);
     }
+}
+
+export function getEthPrice(): number {
+
+    if (ethPrice === 0) {
+        axios.get('https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD')
+            .then(r => { ethPrice = r.data.USD })
+    }
+    return ethPrice
 }
 
 export const generateRandomString = (length: number): string => {

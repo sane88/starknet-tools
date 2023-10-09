@@ -1,7 +1,7 @@
 import { HttpError } from "starknet";
 import { StarknetService } from "./StarknetSevice";
 import * as wallets from "./wallets/wallets.json";
-import { getEthPrice, shuffleArray, wait } from "./util";
+import { shuffleArray, wait } from "./util";
 
 async function main(): Promise<void> {
 

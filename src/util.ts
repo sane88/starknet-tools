@@ -2,7 +2,7 @@ import axios from "axios";
 import { ethers } from "ethers";
 import { EstimateFee } from 'starknet';
 
-export const ETH_PRICE = 1600
+export let ETH_PRICE = 0
 
 export const prettyPrintFee = (fee: EstimateFee) => {
     const formatterOverall = ethers.formatEther(fee.overall_fee.toString())
@@ -19,21 +19,17 @@ export const prettyPrintFee = (fee: EstimateFee) => {
     }
 }
 
-// export async function getEthPrice(): Promise<number> {
+export async function fetchEthPrice() {
 
-//     if (ethPrice === null) {
-//         console.log("getting eth price")
-//         ethPrice = await axios.get('https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD')
-//             .then(r => {
-//                 const price = r.data.USD
-//                 console.log(`The price is $${price}`)
-//                 return price
-//             })
-//     }
-//     return new Promise(r => {
-//         return ethPrice
-//     })
-// }
+    if (ETH_PRICE === 0) {
+        console.log("getting eth price")
+        await axios.get('https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD')
+            .then(r => {
+                ETH_PRICE = r.data.USD
+                console.log(`The price is $${ETH_PRICE}`)
+            })
+    }
+}
 
 export const generateRandomString = (length: number): string => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

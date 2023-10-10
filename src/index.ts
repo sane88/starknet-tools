@@ -1,12 +1,12 @@
 import { HttpError } from "starknet";
 import { StarknetService } from "./StarknetSevice";
 import * as wallets from "./wallets/wallets.json";
-import { shuffleArray, wait } from "./util";
+import { fetchEthPrice, shuffleArray, wait } from "./util";
 
 async function main(): Promise<void> {
 
     // const w = wallets.warm2[2]
-
+    await fetchEthPrice()
     // await runFull(w)
 
     // const service = new StarknetService(w, false)

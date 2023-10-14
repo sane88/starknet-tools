@@ -1,13 +1,15 @@
 import { Account, Call, Contract, Provider, constants, json, uint256, encode, CallContractResponse, AllowArray, hash, stark, ec } from "starknet";
-import { ETH_PRICE, generateRandomString, getRandomStable, prettyPrintFee, randomNumber } from './util';
+import { ETH_PRICE, generateRandomString, getRandomEntry, prettyPrintFee, randomNumber, getRandomElement } from './util';
 import fs from 'fs';
-import { Wallet, ethers } from "ethers";
+import { ethers } from "ethers";
 import { getPubKey, getStarkPk } from "./keyDerivation";
 import { W } from ".";
+import { time } from "console";
 
 
 const ACCOUNT_CLASS_HASH = "0x4d07e40e93398ed3c76981e72dd1fd22557a78ce36c0515f679e27f0bb5bc5f";
 
+const JEDISWAP_CONTRACT = "0x041fd22b238fa21cfcf5dd45a8548974d8263b3a531a60388411c5e230f97023";
 const STARKVERSE_CONTRACT = "0x060582df2cd4ad2c988b11fdede5c43f56a432e895df255ccd1af129160044b8";
 const PYRAMID_CONTRACT = "0x0364847c4f39b869760a8b213186b5b553127e9420e594075d13d1ce8a1d9157";
 const PYRAMID_FRONT = "0x042e7815d9e90b7ea53f4550f74dc12207ed6a0faaef57ba0dbf9a66f3762d82";
@@ -119,17 +121,17 @@ export class StarknetService {
     }
 
     async mySwapSwapEthToStable() {
-        const stableToPool = getRandomStable(MY_SWAP_STABLE_TO_POOL)
-        let amount = (parseFloat(await this.getBalance()) / 1.5).toString()
-        if (amount.length > 18) {
-            amount = amount.substring(0, 18)
-        }
+        const stableToPool = getRandomEntry(MY_SWAP_STABLE_TO_POOL)
+        let amount = (parseFloat(await this.getBalance()) / 1.5).toPrecision(16)
+        // if (amount.length > 18) {
+        //     amount = amount.substring(0, 18)
+        // }
         const amountFloat = parseFloat(amount)
 
-        let slipage = ((amountFloat * ETH_PRICE) - ((amountFloat * ETH_PRICE) * SLIPPAGE) / 100).toString()
-        if (slipage.length > 6) {
-            slipage = slipage.substring(0, 6)
-        }
+        let slipage = ((amountFloat * ETH_PRICE) - ((amountFloat * ETH_PRICE) * SLIPPAGE) / 100).toPrecision(6)
+        // if (slipage.length > 6) {
+        //     slipage = slipage.substring(0, 6)
+        // }
         console.log(`swapping ${amount} of ETH to ${ADDRESS_TO_STABLE.get(stableToPool[0])} (~ $ ${amountFloat * ETH_PRICE}), slippage of ${SLIPPAGE}% ($ ${slipage})`)
 
         await this.invoke([{
@@ -151,11 +153,13 @@ export class StarknetService {
         const amount = stableToBalance[1]
         const amountFloat = parseFloat(amount)
         const amountBn = ethers.parseUnits(amount, (stableToBalance[0][0] == DAI_ADDRESS ? undefined : 6))
-        let slipage = ((amountFloat / ETH_PRICE) - ((amountFloat / ETH_PRICE) * 5) / 100).toString()
-        if (slipage.length > 18) {
-            slipage = slipage.substring(0, 18)
-        }
-        console.log(`swapping ${amount} of ${ADDRESS_TO_STABLE.get(stableToBalance[0][0])} to ETH (~ ${(amountFloat / ETH_PRICE)}), slippage of ${SLIPPAGE}% (${slipage})`)
+        const slipage = ((amountFloat / ETH_PRICE) - ((amountFloat / ETH_PRICE) * SLIPPAGE) / 100).toPrecision(16)
+        // if (slipage.length > 18) {
+        //     slipage = slipage.substring(0, 18)
+        // }
+        const pool = MY_SWAP_STABLE_TO_POOL.get(stableToBalance[0][0])
+        if (!pool) throw Error('no pool found')
+        console.log(`swapping ${amount} of ${stableToBalance[0][1]} to ETH (~ ${(amountFloat / ETH_PRICE)}), slippage of ${SLIPPAGE}% (${slipage})`)
         await this.invoke([{
             contractAddress: stableToBalance[0][0],
             entrypoint: 'approve',
@@ -164,13 +168,68 @@ export class StarknetService {
         {
             contractAddress: MY_SWAP_CONTRACT,
             entrypoint: 'swap',
-            calldata: [stableToBalance[0][1], stableToBalance[0][0], uint256.bnToUint256(amountBn), uint256.bnToUint256(ethers.parseEther(slipage))],
+            calldata: [pool, stableToBalance[0][0], uint256.bnToUint256(amountBn), uint256.bnToUint256(ethers.parseEther(slipage))],
         }
         ])
     }
 
+    async jediSwapEthToStable() {
+        const stable = getRandomEntry(ADDRESS_TO_STABLE)
+        const amount = (parseFloat(await this.getBalance()) / 1.5).toPrecision(11)
+        const amountFloat = parseFloat(amount)
+        const amountMin = ((amountFloat - (amountFloat / 100 * SLIPPAGE)) * ETH_PRICE).toPrecision(6)
+        console.log(`${amount} ETH supposed to be ~${(amountFloat * ETH_PRICE).toPrecision(6)} ${stable[1]} with slipage of ${SLIPPAGE}% is ${amountMin}`)
+
+        await this.invoke([
+            {
+                contractAddress: ETH_ADDRESS,
+                entrypoint: 'approve',
+                calldata: [JEDISWAP_CONTRACT, uint256.bnToUint256(ethers.parseEther(amount))]
+            },
+            {
+                contractAddress: JEDISWAP_CONTRACT,
+                entrypoint: 'swap_exact_tokens_for_tokens',
+                calldata: [
+                    uint256.bnToUint256(ethers.parseEther(amount)),
+                    uint256.bnToUint256(ethers.parseUnits(amountMin, 6)),
+                    [ETH_ADDRESS, stable[0]],
+                    this.account.address,
+                    Date.now() + 10000000
+                ]
+            }
+        ])
+    }
+
+    async jediSwapStableToEth() {
+        const stableToBalance = await this.getStableToBalace()
+        if (stableToBalance == undefined) throw Error("no stable found")
+        const amount = stableToBalance[1]
+        const amountFloat = parseFloat(amount)
+        const amountBn = ethers.parseUnits(amount, (stableToBalance[0][0] == DAI_ADDRESS ? undefined : 6))
+        const amountMin = ((amountFloat - (amountFloat / 100 * SLIPPAGE)) / ETH_PRICE).toPrecision(16)
+        console.log(`${amount} ${stableToBalance[0][1]} is supposed to be ~ ${(amountFloat / ETH_PRICE).toPrecision(16)} with ${SLIPPAGE}% is ${amountMin}`)
+        await this.invoke([
+            {
+                contractAddress: stableToBalance[0][0],
+                entrypoint: 'approve',
+                calldata: [JEDISWAP_CONTRACT, uint256.bnToUint256(amountBn)]
+            },
+            {
+                contractAddress: JEDISWAP_CONTRACT,
+                entrypoint: 'swap_exact_tokens_for_tokens',
+                calldata: [
+                    uint256.bnToUint256(amountBn),
+                    uint256.bnToUint256(ethers.parseEther(amountMin)),
+                    [stableToBalance[0][0], ETH_ADDRESS],
+                    this.account.address,
+                    Date.now() + 10000000
+                ]
+            }
+        ])
+    }
+
     private async getStableToBalace(): Promise<[[string, string], string] | undefined> {
-        for (const stable of MY_SWAP_STABLE_TO_POOL.entries()) {
+        for (const stable of ADDRESS_TO_STABLE.entries()) {
             const balance = await this.getBalance(stable[0], (stable[0] == DAI_ADDRESS ? undefined : 6))
             if (parseFloat(balance) > 0) {
                 return [stable, balance]

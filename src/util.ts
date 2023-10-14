@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ethers } from "ethers";
+import { get } from "http";
 import { EstimateFee } from 'starknet';
 
 export let ETH_PRICE = 0
@@ -54,9 +55,12 @@ export const wait = (from: number = 1000, to: number = 5000) => {
     });
 }
 
-export const getRandomStable = (stables: Map<string, string>): [string, string] => {
-    const entries = Array.from(stables.entries())
-    return entries[Math.floor(Math.random() * entries.length)]
+export const getRandomEntry = <K, V>(map: Map<K, V>): [K, V] => {
+    return getRandomElement(Array.from(map.entries()))
+}
+
+export const getRandomElement = <T>(arr: Array<T>): T => {
+    return arr[Math.floor(Math.random() * arr.length)]
 }
 
 

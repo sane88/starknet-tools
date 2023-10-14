@@ -5,13 +5,16 @@ import { fetchEthPrice, shuffleArray, wait } from "./util";
 
 async function main(): Promise<void> {
 
-    // const w = wallets.warm2[2]
+    // const w = wallets.warm3[1]
     await fetchEthPrice()
     // await runFull(w)
 
     // const service = new StarknetService(w, false)
 
-    // await service.pyramidCancel()
+    // await service.starkverseMint()
+    // await service.jediSwapEthToStable()
+    // await wait()
+    // await service.jediSwapStableToEth()
     // await wait()
     // await service.increaseAllowance()
     // await wait()
@@ -24,25 +27,26 @@ async function main(): Promise<void> {
     // console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
     // await zkVolAndTransafer(w, "0.6963")
     // await service.transferToOkx("0.6963")
-    // for (let i = 2; i < wallets.warm2.length; i++) {
-    //     const w = wallets.warm2[i]
-    //     console.log(`Address ${w.address}`)
-    // const service = new StarknetService(w, false)
-    // await service.pyramidApprove()
-    // await wait()
-    // await service.pyramidCancel()
-    // await withRetry(async () => {
-    //     await service.getBalance().then((v) => {
-    //         console.log(`ballance for wallet ${w.address} is ${v} ETH`)
-    //     })
-    // })
-    // await wait()
-    // await service.flexSetApprovalNFT()
-    // await wait()
-    // await service.flexCancellOrder()
-    // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
-    // await single(w)
-    // }
+    for (let i = 0; i < wallets.warm5.length; i++) {
+        const w = wallets.warm5[i]
+        //     console.log(`Address ${w.address}`)
+        // const service = new StarknetService(w, false)
+        // await service.pyramidApprove()
+        // await wait()
+        // await service.pyramidCancel()
+        // await withRetry(async () => {
+        //     await service.getBalance().then((v) => {
+        //         console.log(`ballance for wallet ${w.address} is ${v} ETH`)
+        //     })
+        // })
+        // await wait()
+        // await service.flexSetApprovalNFT()
+        // await wait()
+        // await service.flexCancellOrder()
+        // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
+        await single(w)
+        await wait(5000, 10000)
+    }
 
     // wallets.warm2.slice(2,4).forEach((wallet) => {
     //     //  await runFull(wallet)
@@ -117,7 +121,7 @@ const withRetry = async (fun: () => Promise<void>, times: number = 3) => {
             if (times == 0) throw error
 
             console.warn(`Error thown: ${error} retries left ${times}`)
-            withRetry(fun, times - 1)
+            await withRetry(fun, times - 1)
         }
         throw error
     }
@@ -138,14 +142,19 @@ const single = async (w: W) => {
         //     await wait()
         //     await service.mySwapSwapStableToEth()
         // },
-        async function pyramidApproveAndCancel() {
-            await service.pyramidApprove()
-            await wait()
-            await service.pyramidCancel()
-        },
+        // async function pyramidApproveAndCancel() {
+        //     await service.pyramidApprove()
+        //     await wait()
+        //     await service.pyramidCancel()
+        // },
         // async function pyramidMint() {
         //     await service.pyramidMintNFT()
         // },
+        async function jediSwap() {
+            await service.jediSwapEthToStable()
+            await wait()
+            await service.jediSwapStableToEth()
+        },
         async function starkverseMint() {
             await service.starkverseMint()
         },

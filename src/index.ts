@@ -27,26 +27,31 @@ async function main(): Promise<void> {
     // console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
     // await zkVolAndTransafer(w, "0.6963")
     // await service.transferToOkx("0.6963")
-    for (let i = 0; i < wallets.warm5.length; i++) {
-        const w = wallets.warm5[i]
-        //     console.log(`Address ${w.address}`)
-        // const service = new StarknetService(w, false)
-        // await service.pyramidApprove()
-        // await wait()
-        // await service.pyramidCancel()
-        // await withRetry(async () => {
-        //     await service.getBalance().then((v) => {
-        //         console.log(`ballance for wallet ${w.address} is ${v} ETH`)
-        //     })
-        // })
-        // await wait()
-        // await service.flexSetApprovalNFT()
-        // await wait()
-        // await service.flexCancellOrder()
-        // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
-        await single(w)
-        await wait(5000, 10000)
-    }
+    // for (let i = 5; i < wallets.warm4.length; i++) {
+    //     const w = wallets.warm4[i]
+    //     console.log(`Address ${w.address}`)
+    //     const service = new StarknetService(w, false)
+    //     await service.sendDmail()
+    // await wait()
+    // await service.jediSwapStableToEth()
+    // await service.starkverseMint()
+    // await service.pyramidApprove()
+    // await wait()
+    // await service.pyramidCancel()
+    // await wait(5000, 10000)
+    // await withRetry(async () => {
+    //     await service.getBalance().then((v) => {
+    //         console.log(`ballance for wallet ${w.address} is ${v} ETH`)
+    //     })
+    // })
+    // await wait()
+    // await service.flexSetApprovalNFT()
+    // await wait()
+    // await service.flexCancellOrder()
+    // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
+    // await single(w)
+    // await wait(5000, 10000)
+    // }
 
     // wallets.warm2.slice(2,4).forEach((wallet) => {
     //     //  await runFull(wallet)

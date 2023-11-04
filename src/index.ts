@@ -6,7 +6,7 @@ import { fetchEthPrice, shuffleArray, wait } from "./util";
 async function main(): Promise<void> {
 
     // const w = wallets.warm3[1]
-    await fetchEthPrice()
+    // await fetchEthPrice()
     // await runFull(w)
 
     // const service = new StarknetService(w, false)
@@ -27,31 +27,31 @@ async function main(): Promise<void> {
     // console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
     // await zkVolAndTransafer(w, "0.6963")
     // await service.transferToOkx("0.6963")
-    // for (let i = 5; i < wallets.warm4.length; i++) {
-    //     const w = wallets.warm4[i]
-    //     console.log(`Address ${w.address}`)
-    //     const service = new StarknetService(w, false)
-    //     await service.sendDmail()
-    // await wait()
-    // await service.jediSwapStableToEth()
-    // await service.starkverseMint()
-    // await service.pyramidApprove()
-    // await wait()
-    // await service.pyramidCancel()
-    // await wait(5000, 10000)
-    // await withRetry(async () => {
-    //     await service.getBalance().then((v) => {
-    //         console.log(`ballance for wallet ${w.address} is ${v} ETH`)
-    //     })
-    // })
-    // await wait()
-    // await service.flexSetApprovalNFT()
-    // await wait()
-    // await service.flexCancellOrder()
-    // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
-    // await single(w)
-    // await wait(5000, 10000)
-    // }
+    for (let i = wallets.warm2.length - 2; i < wallets.warm2.length; i++) {
+        const w = wallets.warm2[i]
+        console.log(`Address ${w.address}`)
+        const service = new StarknetService(w, false)
+        await service.mintStarkStarsNft()
+        // await wait()
+        // await service.jediSwapStableToEth()
+        // await service.starkverseMint()
+        // await service.pyramidApprove()
+        // await wait()
+        // await service.pyramidCancel()
+        // await wait(5000, 10000)
+        // await withRetry(async () => {
+        //     await service.getBalance().then((v) => {
+        //         console.log(`ballance for wallet ${w.address} is ${v} ETH`)
+        //     })
+        // })
+        // await wait()
+        // await service.flexSetApprovalNFT()
+        // await wait()
+        // await service.flexCancellOrder()
+        // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
+        // await single(w)
+        await wait(5000, 10000)
+    }
 
     // wallets.warm2.slice(2,4).forEach((wallet) => {
     //     //  await runFull(wallet)

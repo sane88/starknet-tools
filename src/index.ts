@@ -1,12 +1,12 @@
 import { HttpError } from "starknet";
-import { StarknetService } from "./StarknetSevice";
+import { DAI_ADDRESS, StarknetService, USDC_ADDRESS, USDT_ADDRESS } from "./StarknetSevice";
 import * as wallets from "./wallets/wallets.json";
 import { fetchEthPrice, shuffleArray, wait } from "./util";
 
 async function main(): Promise<void> {
 
     // const w = wallets.warm3[1]
-    // await fetchEthPrice()
+    await fetchEthPrice()
     // await runFull(w)
 
     // const service = new StarknetService(w, false)
@@ -27,11 +27,14 @@ async function main(): Promise<void> {
     // console.log(`ballance for wallet ${w.address} is ${await service.getBalance()} ETH`)
     // await zkVolAndTransafer(w, "0.6963")
     // await service.transferToOkx("0.6963")
-    for (let i = wallets.warm2.length - 2; i < wallets.warm2.length; i++) {
-        const w = wallets.warm2[i]
-        console.log(`Address ${w.address}`)
-        const service = new StarknetService(w, false)
-        await service.mintStarkStarsNft()
+    const s = new StarknetService(wallets.warm6[0])
+    await s.transferToOkxMax()
+
+    for (let i = 0; i < wallets.warm.length; i++) {
+        // const w = wallets.warm[i]
+        // console.log(`Address ${w.address}`)
+        // const service = new StarknetService(w, false)
+        // await service.mintStarkStarsNft()
         // await wait()
         // await service.jediSwapStableToEth()
         // await service.starkverseMint()
@@ -50,7 +53,9 @@ async function main(): Promise<void> {
         // await service.flexCancellOrder()
         // console.log(`ballance for wallet ${wallets.warm2[i].address} is ${await service.getBalance()} ETH`)
         // await single(w)
-        await wait(5000, 10000)
+        // await wait(5000, 10000)
+        // const s = new StarknetService(w)
+        //  await s.transferToOkxMax()
     }
 
     // wallets.warm2.slice(2,4).forEach((wallet) => {
@@ -136,22 +141,22 @@ const single = async (w: W) => {
     const service = new StarknetService(w, false)
     const f = shuffleArray([
         // async function mint() { await service.mintStarknetId() },
-        // async function dmail() { await service.sendDmail() },
-        // async function collateral() {
-        //     await service.enableCollateral()
-        //     await wait()
-        //     await service.disableCollateral()
-        // },
-        // async function swap() {
-        //     await service.mySwapSwapEthToStable()
-        //     await wait()
-        //     await service.mySwapSwapStableToEth()
-        // },
-        // async function pyramidApproveAndCancel() {
-        //     await service.pyramidApprove()
-        //     await wait()
-        //     await service.pyramidCancel()
-        // },
+        async function dmail() { await service.sendDmail() },
+        async function collateral() {
+            await service.enableCollateral()
+            await wait()
+            await service.disableCollateral()
+        },
+        async function swap() {
+            await service.mySwapSwapEthToStable()
+            await wait()
+            await service.mySwapSwapStableToEth()
+        },
+        async function pyramidApproveAndCancel() {
+            await service.pyramidApprove()
+            await wait()
+            await service.pyramidCancel()
+        },
         // async function pyramidMint() {
         //     await service.pyramidMintNFT()
         // },
@@ -163,16 +168,19 @@ const single = async (w: W) => {
         async function starkverseMint() {
             await service.starkverseMint()
         },
-        // async function flex() {
-        //     await service.flexSetApprovalNFT()
-        //     await wait()
-        //     await service.flexCancellOrder()
-        // },
-        // async function unframed() {
-        //     await service.increaseAllowance()
-        //     await wait()
-        //     await service.unframedCancel()
-        // }
+        async function flex() {
+            await service.flexSetApprovalNFT()
+            await wait()
+            await service.flexCancellOrder()
+        },
+        async function starkStarsMint() {
+             await service.mintStarkStarsNft()
+        },
+        async function unframed() {
+            await service.increaseAllowance()
+            await wait()
+            await service.unframedCancel()
+        }
     ])[0]
     console.log('-------------------------')
     console.log(`running ${f.name} for ${w.address}`)

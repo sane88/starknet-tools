@@ -1,4 +1,4 @@
-import { Account, Call, Contract, Provider, constants, json, uint256, encode, CallContractResponse, AllowArray, hash, stark, ec } from "starknet";
+import { Account, Call, Contract, Provider, constants, json, uint256, encode, CallContractResponse, AllowArray, hash, stark, ec, RpcProvider } from "starknet";
 import { ETH_PRICE, generateRandomString, getRandomEntry, prettyPrintFee, randomNumber, getRandomElement } from './util';
 import fs from 'fs';
 import { ethers } from "ethers";
@@ -16,9 +16,9 @@ const PYRAMID_FRONT = "0x042e7815d9e90b7ea53f4550f74dc12207ed6a0faaef57ba0dbf9a6
 const DMAIL_CONTRACT = "0x0454f0bd015e730e5adbb4f080b075fdbf55654ff41ee336203aa2e1ac4d4309";
 const STARK_ID_CONTRACT = "0x05dbdedc203e92749e2e746e2d40a768d966bd243df04a6b712e222bc040a9af";
 const ETH_ADDRESS = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
-const USDT_ADDRESS = "0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
-const USDC_ADDRESS = "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
-const DAI_ADDRESS = "0x00da114221cb83fa859dbdb4c44beeaa0bb37c7537ad5ae66fe5e0efd20e6eb3";
+export const USDT_ADDRESS = "0x68f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
+export const USDC_ADDRESS = "0x53c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
+export const DAI_ADDRESS = "0x00da114221cb83fa859dbdb4c44beeaa0bb37c7537ad5ae66fe5e0efd20e6eb3";
 const ZK_LAND_CONTRACT = "0x04c0a5193d58f74fbace4b74dcf65481e734ed1714121bdc571da345540efa05";
 const MY_SWAP_CONTRACT = "0x010884171baf1914edc28d7afb619b40a4051cfae78a094a55d230f19e944a28";
 const FLEX_OWNER = "0x44cf6f308cb181e0f0a6aeb3601802f45eda2714f3334aded57b3e9dbb1a20";
@@ -51,7 +51,7 @@ const SLIPPAGE = 5;
 export class StarknetService {
 
     private account: Account
-    private provider: Provider = new Provider({ sequencer: { network: constants.NetworkName.SN_MAIN } })
+    private provider = new RpcProvider({ nodeUrl: "https://starknet-mainnet.public.blastapi.io" })
     private dryRun: boolean
     private okxAddress: string
 
@@ -73,6 +73,47 @@ export class StarknetService {
             contractAddress: ETH_ADDRESS,
             entrypoint: "transfer",
             calldata: [this.okxAddress, uint256Amount.low, uint256Amount.high],
+        })
+    }
+
+    async transferToOkxMax() {
+        if (this.okxAddress == "") {
+            console.warn("No OKX address provided")
+            return
+        }
+
+        const balance = await this.getBalanceBigInt()
+        let amountUint = uint256.bnToUint256(balance)
+
+        const esimation = await this.account.estimateInvokeFee({
+            contractAddress: ETH_ADDRESS,
+            entrypoint: "transfer",
+            calldata: [this.okxAddress, amountUint.low, amountUint.high],
+        })
+
+        const amounttoTransferBn = balance - esimation.suggestedMaxFee
+        const amountToTransfer = uint256.bnToUint256(amounttoTransferBn)
+        if (amounttoTransferBn < 0.0) {
+            console.warn("No balance to transfer")
+            return
+        }
+
+        console.log(balance)
+        console.log(esimation.suggestedMaxFee)
+
+        console.log(`Transferring ${ethers.formatEther(amounttoTransferBn)} of ETH to ${this.okxAddress}`)
+        await this.invoke({
+            contractAddress: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+            entrypoint: "transfer",
+            calldata: [this.okxAddress, amountToTransfer.low, amountToTransfer.high],
+        })
+    }
+
+    async claim() {
+        await this.invoke({
+            contractAddress: "0x06793d9e6ed7182978454c79270e5b14d2655204ba6565ce9b0aa8a3c3121025",
+            entrypoint: 'claim',
+            calldata: [this.account.address, uint256.bnToUint256(ethers.parseUnits("650", 8))],
         })
     }
 
@@ -402,6 +443,14 @@ export class StarknetService {
         let balanceBigNumber = uint256.uint256ToBN(balance.balance);
         let formatted = ethers.formatUnits(balanceBigNumber, units)
         return formatted
+    }
+
+    async getBalanceBigInt(token?: string, units?: number): Promise<bigint> {
+        const erc20ABI = json.parse(fs.readFileSync("./src/interfaces/ERC20_abi.json").toString("ascii"));
+        const erc20 = new Contract(erc20ABI, token || ETH_ADDRESS, this.provider);
+        const balance = await erc20.balanceOf(this.account.address);
+        let balanceBigNumber = uint256.uint256ToBN(balance.balance);
+        return balanceBigNumber
     }
 
     private async call(call: Call): Promise<CallContractResponse> {
